@@ -1,6 +1,20 @@
 # CMPC-libros - Sistema de Gestión de Inventario de Libros
 
+![React](https://img.shields.io/badge/React-18.3.1-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?logo=typescript)
+![NestJS](https://img.shields.io/badge/NestJS-10.2.7-red?logo=nestjs)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue?logo=docker)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 Una aplicación web completa para la gestión de inventario de la tienda CMPC-libros, desarrollada con React + TypeScript en el frontend y NestJS + TypeScript en el backend, utilizando PostgreSQL como base de datos.
+
+## 🌟 Demo en Vivo
+- **Frontend**: [http://localhost:3000](http://localhost:3000) (ejecutar con Docker)
+- **API Swagger**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
+
+## 📸 Screenshots
+*Próximamente: Capturas de pantalla de la aplicación*
 
 ## 🚀 Características Principales
 
