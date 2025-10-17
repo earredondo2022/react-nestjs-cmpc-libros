@@ -1,0 +1,67 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: cmpc-libros-db
+    environment:
+      POSTGRES_DB: cmpc_libros
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cmpc-network
+
+  # NestJS Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cmpc-libros-backend
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=cmpc_libros
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres123
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    volumes:
+      # - ./backend:/app  # Commented out for production build
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    networks:
+      - cmpc-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cmpc-libros-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      # - ./frontend:/app  # Commented out for production build
+      - /app/node_modules
+    networks:
+      - cmpc-network
+
+volumes:
+  postgres_data:
+
+networks:
+  cmpc-network:
+    driver: bridge
