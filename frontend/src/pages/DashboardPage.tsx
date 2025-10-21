@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BooksList } from '../components/BooksList';
-import { BooksListDebug } from '../components/BooksListDebug';
 import { BookForm } from '../components/BookForm';
+import AuditLogs from '../components/AuditLogs';
 
 // Agregar estilos CSS para animaciones
 const styles = `
@@ -57,12 +57,12 @@ interface Book {
   genreId?: string;
 }
 
-type CurrentView = 'dashboard' | 'book-form';
+type CurrentView = 'dashboard' | 'book-form' | 'audit-logs';
 
 export const DashboardPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-    const [currentView, setCurrentView] = useState<'dashboard' | 'book-form'>('dashboard');
+    const [currentView, setCurrentView] = useState<'dashboard' | 'book-form' | 'audit-logs'>('dashboard');
   const [editingBook, setEditingBook] = useState<Book | undefined>(undefined);
 
   useEffect(() => {
@@ -218,6 +218,14 @@ export const DashboardPage = () => {
                       {editingBook ? 'Editar Libro' : 'Agregar Libro'}
                     </span>
                   )}
+                  {currentView === 'audit-logs' && (
+                    <span className="text-gray-900 font-medium" style={{
+                      color: '#111827',
+                      fontWeight: '500'
+                    }}>
+                      Auditoría del Sistema
+                    </span>
+                  )}
                 </nav>
               )}
             </div>
@@ -232,6 +240,35 @@ export const DashboardPage = () => {
               }}>
                 Bienvenido, {user?.firstName} {user?.lastName}
               </span>
+              <button
+                onClick={() => setCurrentView('audit-logs')}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center gap-2"
+                style={{
+                  backgroundColor: '#7c3aed',
+                  color: 'white',
+                  fontWeight: '500',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s ease',
+                  outline: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#6d28d9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#7c3aed';
+                }}
+              >
+                <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Auditoría
+              </button>
               <button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
@@ -282,6 +319,10 @@ export const DashboardPage = () => {
               onSave={handleBookSaved}
               onCancel={() => setCurrentView('dashboard')}
             />
+          )}
+
+          {currentView === 'audit-logs' && (
+            <AuditLogs />
           )}
         </div>
       </main>

@@ -326,9 +326,6 @@ export const BooksList: React.FC<BooksListProps> = ({ onAddBook, onEditBook }) =
       if (response.ok) {
         // Recargar la lista de libros después de eliminar
         fetchBooks(filters, sortConfig, currentPage, pageSize);
-        
-        // Mostrar mensaje de éxito (opcional)
-        console.log(`Libro "${book.title}" eliminado exitosamente`);
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Error al eliminar el libro');
@@ -336,6 +333,57 @@ export const BooksList: React.FC<BooksListProps> = ({ onAddBook, onEditBook }) =
     } catch (error) {
       setError('Error de conexión al eliminar el libro');
       console.error('Error deleting book:', error);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Build query parameters with current filters
+      const params = new URLSearchParams();
+      if (filters.title) params.append('title', filters.title);
+      if (filters.authorId) params.append('authorId', filters.authorId);
+      if (filters.publisherId) params.append('publisherId', filters.publisherId);
+      if (filters.genreId) params.append('genreId', filters.genreId);
+      if (filters.isAvailable) params.append('isAvailable', filters.isAvailable);
+
+      const response = await fetch(`http://localhost:3001/api/books/export/csv?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Get the filename from the response headers
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'libros_export.csv';
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        // Create blob and download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Error al exportar CSV');
+      }
+    } catch (error) {
+      setError('Error de conexión al exportar CSV');
+      console.error('Error exporting CSV:', error);
     }
   };
 
@@ -410,29 +458,56 @@ export const BooksList: React.FC<BooksListProps> = ({ onAddBook, onEditBook }) =
             {totalBooks} libro{totalBooks !== 1 ? 's' : ''} encontrado{totalBooks !== 1 ? 's' : ''}
           </p>
         </div>
-        <button
-          onClick={onAddBook}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          style={{
-            backgroundColor: '#2563eb',
-            color: 'white',
-            padding: '0.5rem 1.5rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-        >
-          <span>+</span>
-          Agregar Libro
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            onClick={handleExportCsv}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            style={{
+              backgroundColor: '#16a34a',
+              color: 'white',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#15803d'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#16a34a'}
+          >
+            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar CSV
+          </button>
+          <button
+            onClick={onAddBook}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            style={{
+              backgroundColor: '#2563eb',
+              color: 'white',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+          >
+            <span>+</span>
+            Agregar Libro
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -455,7 +530,7 @@ export const BooksList: React.FC<BooksListProps> = ({ onAddBook, onEditBook }) =
             color: '#6b7280',
             margin: 0,
             fontStyle: 'italic'
-          }}>💡 Pasa el mouse sobre el título de un libro para ver sus detalles</p>
+          }}></p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" style={{
           display: 'grid',

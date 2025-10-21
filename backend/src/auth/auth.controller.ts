@@ -23,6 +23,6 @@ export class AuthController {
     },
   })
   async login(@Request() req: any) {
-    return this.authService.login(req.user);
+    return this.authService.legacyLogin(req.user);
   }
 }

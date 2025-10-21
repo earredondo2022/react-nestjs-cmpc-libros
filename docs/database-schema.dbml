@@ -1,0 +1,193 @@
+// CMPC-libros Database Schema
+// Use this file in dbdiagram.io to visualize the database schema
+
+Project cmpc_libros {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # CMPC-libros - Sistema de Gestión de Inventario de Libros
+    
+    Sistema completo de gestión de libros con autenticación, 
+    auditoría y funcionalidades CRUD completas.
+    
+    **Características principales:**
+    - Autenticación JWT
+    - Soft deletes en todas las entidades principales
+    - Sistema de auditoría completo
+    - Gestión de inventario con stock
+    - Relaciones Many-to-One optimizadas
+  '''
+}
+
+// ================================
+// ENTIDADES PRINCIPALES
+// ================================
+
+Table users {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  email varchar(255) [not null, unique]
+  password varchar(255) [not null]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
+  role varchar(50) [not null, default: 'user']
+  is_active boolean [not null, default: true]
+  last_login timestamp
+  last_login_ip varchar(15)
+  login_attempts integer [not null, default: 0]
+  locked_until timestamp
+  password_changed_at timestamp
+  created_at timestamp [not null, default: 'now()']
+  updated_at timestamp [not null, default: 'now()']
+  
+  indexes {
+    (email) [name: 'idx_users_email', unique]
+    (role) [name: 'idx_users_role']
+    (is_active) [name: 'idx_users_active']
+  }
+  
+  Note: 'Tabla de usuarios del sistema con autenticación y control de acceso'
+}
+
+Table authors {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  name varchar(255) [not null]
+  biography text
+  birth_date date
+  nationality varchar(255)
+  created_at timestamp [not null, default: 'now()']
+  updated_at timestamp [not null, default: 'now()']
+  deleted_at timestamp [note: 'Soft delete field']
+  
+  Note: 'Catálogo de autores de libros'
+}
+
+Table publishers {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  name varchar(255) [not null]
+  country varchar(255)
+  founded_year integer
+  created_at timestamp [not null, default: 'now()']
+  updated_at timestamp [not null, default: 'now()']
+  deleted_at timestamp [note: 'Soft delete field']
+  
+  Note: 'Catálogo de editoriales'
+}
+
+Table genres {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  name varchar(255) [not null, unique]
+  description text
+  created_at timestamp [not null, default: 'now()']
+  updated_at timestamp [not null, default: 'now()']
+  deleted_at timestamp [note: 'Soft delete field']
+  
+  Note: 'Catálogo de géneros literarios'
+}
+
+Table books {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  title varchar(500) [not null]
+  isbn varchar(17) [unique, note: 'International Standard Book Number']
+  price decimal(10,2) [not null, note: 'Precio en la moneda base del sistema']
+  stock_quantity integer [not null, default: 0, note: 'Cantidad disponible en inventario']
+  is_available boolean [not null, default: true]
+  publication_date date
+  pages integer
+  description text
+  image_url varchar(500) [note: 'URL de la portada del libro']
+  author_id uuid
+  publisher_id uuid
+  genre_id uuid
+  created_at timestamp [not null, default: 'now()']
+  updated_at timestamp [not null, default: 'now()']
+  deleted_at timestamp [note: 'Soft delete field']
+  
+  indexes {
+    (title) [name: 'idx_books_title']
+    (isbn) [name: 'idx_books_isbn', unique]
+    (author_id) [name: 'idx_books_author']
+    (publisher_id) [name: 'idx_books_publisher']
+    (genre_id) [name: 'idx_books_genre']
+    (is_available, stock_quantity) [name: 'idx_books_availability']
+    (created_at) [name: 'idx_books_created_at']
+    (deleted_at) [name: 'idx_books_soft_delete']
+  }
+  
+  Note: 'Entidad principal - Catálogo de libros con inventario'
+}
+
+// ================================
+// SISTEMA DE AUDITORÍA
+// ================================
+
+Table audit_logs {
+  id uuid [primary key, default: 'uuid_generate_v4()']
+  user_id uuid [note: 'Usuario que realizó la acción']
+  action varchar(50) [not null, note: 'CREATE, UPDATE, DELETE, etc.']
+  table_name varchar(100) [not null, note: 'Tabla afectada']
+  record_id uuid [note: 'ID del registro afectado']
+  old_values jsonb [note: 'Valores anteriores al cambio']
+  new_values jsonb [note: 'Valores nuevos después del cambio']
+  ip_address inet [note: 'Dirección IP del usuario']
+  user_agent text [note: 'User-Agent del navegador']
+  created_at timestamp [not null, default: 'now()']
+  
+  indexes {
+    (user_id) [name: 'idx_audit_user']
+    (table_name) [name: 'idx_audit_table']
+    (record_id) [name: 'idx_audit_record']
+    (action) [name: 'idx_audit_action']
+    (created_at) [name: 'idx_audit_created_at']
+    (table_name, record_id) [name: 'idx_audit_table_record']
+  }
+  
+  Note: '''
+    Sistema de auditoría completo que registra todas las operaciones CRUD.
+    Permite trazabilidad completa de cambios en el sistema.
+  '''
+}
+
+// ================================
+// RELACIONES
+// ================================
+
+// Un autor puede tener muchos libros (One-to-Many: Author to Books)
+Ref: authors.id < books.author_id
+
+// Una editorial puede publicar muchos libros (One-to-Many: Publisher to Books)
+Ref: publishers.id < books.publisher_id
+
+// Un género puede tener muchos libros (One-to-Many: Genre to Books)
+Ref: genres.id < books.genre_id
+
+// Los logs de auditoría pueden referenciar usuarios (Optional: User who performed the action)
+Ref: users.id < audit_logs.user_id
+
+// ================================
+// ÍNDICES PARA OPTIMIZACIÓN
+// ================================
+
+// ================================
+// ENUMS Y TIPOS ESPECIALES
+// ================================
+
+enum user_roles {
+  admin
+  user
+  moderator
+}
+
+enum audit_actions {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+}
+
+enum book_availability_status {
+  available [note: 'Disponible']
+  limited [note: 'Pocas unidades (≤5)']
+  out_of_stock [note: 'Agotado (stock = 0)']
+  unavailable [note: 'No disponible (is_available = false)']
+}

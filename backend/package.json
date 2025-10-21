@@ -15,8 +15,14 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:cov:html": "jest --coverage --coverageReporters=html",
+    "test:cov:lcov": "jest --coverage --coverageReporters=lcov",
+    "test:cov:ci": "jest --coverage --coverageReporters=text-lcov --coverageReporters=json --passWithNoTests",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage",
+    "test:all": "npm run test:cov && npm run test:e2e:cov",
+    "test:perf": "artillery run test/performance/load-test.yml",
     "migration:generate": "sequelize-cli migration:generate",
     "migration:run": "sequelize-cli db:migrate",
     "migration:revert": "sequelize-cli db:migrate:undo"
@@ -45,6 +51,7 @@
     "rxjs": "^7.8.1",
     "sequelize": "^6.33.0",
     "sequelize-typescript": "^2.1.5",
+    "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },
@@ -90,9 +97,35 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.d.ts",
+      "!**/node_modules/**",
+      "!**/migrations/**",
+      "!**/config/**",
+      "!main.ts",
+      "!**/*.interface.ts",
+      "!**/*.enum.ts",
+      "!**/*.dto.ts"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html",
+      "json"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/../test/setup.ts"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
   }
 }

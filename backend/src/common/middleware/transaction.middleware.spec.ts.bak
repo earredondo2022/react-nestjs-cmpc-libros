@@ -1,0 +1,499 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { TransactionMiddleware } from './transaction.middleware';
+import { TransactionService } from '../services/transaction.service';
+import { AuditService } from '../../audit/audit.service';
+
+// Mock interfaces for testing
+interface MockRequest extends Partial<Request> {
+  method?: string;
+  path?: string;
+  headers?: any;
+  get?: jest.Mock;
+  user?: any;
+  connection?: any;
+  socket?: any;
+  transaction?: any;
+  transactionId?: string;
+  startTime?: number;
+}
+
+interface MockTransaction {
+  id: string;
+  commit?: jest.Mock;
+  rollback?: jest.Mock;
+  afterCommit?: jest.Mock;
+  LOCK?: any;
+}
+
+describe('TransactionMiddleware', () => {
+  let middleware: TransactionMiddleware;
+  let transactionService: jest.Mocked<TransactionService>;
+  let auditService: jest.Mocked<AuditService>;
+  let mockRequest: MockRequest;
+  let mockResponse: Partial<Response>;
+  let nextFunction: jest.MockedFunction<NextFunction>;
+
+  beforeEach(async () => {
+    const mockTransactionService = {
+      runInTransaction: jest.fn(),
+    };
+
+    const mockAuditService = {
+      logCreateWithTransaction: jest.fn(),
+      logCreate: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TransactionMiddleware,
+        {
+          provide: TransactionService,
+          useValue: mockTransactionService,
+        },
+        {
+          provide: AuditService,
+          useValue: mockAuditService,
+        },
+      ],
+    }).compile();
+
+    middleware = module.get<TransactionMiddleware>(TransactionMiddleware);
+    transactionService = module.get(TransactionService);
+    auditService = module.get(AuditService);
+
+    // Mock request
+    mockRequest = {
+      method: 'POST',
+      path: '/books',
+      headers: {},
+      get: jest.fn(),
+      user: { id: 'user123' },
+      connection: { remoteAddress: '127.0.0.1' } as any,
+    };
+
+    // Mock response
+    mockResponse = {
+      statusCode: 200,
+      on: jest.fn(),
+    };
+
+    nextFunction = jest.fn();
+
+    // Mock console methods
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  describe('use', () => {
+    it('should execute transaction for POST /books endpoint', async () => {
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-123',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+      expect(mockRequest.transaction).toBe(mockTransaction);
+      expect(mockRequest.transactionId).toBeDefined();
+      expect(mockRequest.startTime).toBeDefined();
+    });
+
+    it('should execute transaction for PUT /books/:id endpoint', async () => {
+      mockRequest = { ...mockRequest, method: 'PUT', path: '/books/123' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-456',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+      expect(mockRequest.transaction).toBe(mockTransaction);
+    });
+
+    it('should execute transaction for PATCH /books/:id endpoint', async () => {
+      mockRequest = { ...mockRequest, method: 'PATCH', path: '/books/456' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-789',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+      expect(mockRequest.transaction).toBe(mockTransaction);
+    });
+
+    it('should execute transaction for DELETE /books/:id endpoint', async () => {
+      mockRequest = { ...mockRequest, method: 'DELETE', path: '/books/789' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-delete',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+      expect(mockRequest.transaction).toBe(mockTransaction);
+    });
+
+    it('should execute transaction for batch operations', async () => {
+      mockRequest = { ...mockRequest, method: 'POST', path: '/books/batch' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-batch',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+    });
+
+    it('should execute transaction for auth endpoints', async () => {
+      mockRequest = { ...mockRequest, method: 'POST', path: '/auth/register' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-auth',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+    });
+
+    it('should execute transaction for authors endpoints', async () => {
+      mockRequest = { ...mockRequest, method: 'POST', path: '/authors' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-authors',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+    });
+
+    it('should execute transaction for publishers endpoints', async () => {
+      mockRequest = { ...mockRequest, method: 'PUT', path: '/publishers/123' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-publishers',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+    });
+
+    it('should execute transaction for genres endpoints', async () => {
+      mockRequest = { ...mockRequest, method: 'DELETE', path: '/genres/456' };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-genres',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).toHaveBeenCalled();
+    });
+
+    it('should skip transaction for non-transactional endpoints', async () => {
+      mockRequest = { ...mockRequest, method: 'GET', path: '/books' };
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+    });
+
+    it('should skip transaction when explicitly disabled', async () => {
+      mockRequest = { ...mockRequest, headers: { 'x-disable-transaction': 'true' } };
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+    });
+
+    it('should skip transaction when transaction already exists', async () => {
+      mockRequest = { ...mockRequest, transaction: { id: 'existing-tx' } };
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(transactionService.runInTransaction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+    });
+
+    it('should log successful transaction completion', async () => {
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-success',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tableName: 'transactions',
+          newValues: expect.objectContaining({
+            status: 'committed',
+            method: 'POST',
+            path: '/books',
+          }),
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should handle transaction failure and log rollback', async () => {
+      const error = new Error('Database error');
+      transactionService.runInTransaction.mockRejectedValue(error);
+
+      await expect(
+        middleware.use(mockRequest as Request, mockResponse as Response, nextFunction)
+      ).rejects.toThrow('Database error');
+
+      expect(auditService.logCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tableName: 'transactions',
+          newValues: expect.objectContaining({
+            status: 'rolled_back',
+            method: 'POST',
+            path: '/books',
+            error: 'Database error',
+          }),
+        })
+      );
+    });
+
+    it('should extract user ID from request user object', async () => {
+      mockRequest = { ...mockRequest, user: { id: 'test-user-123' } };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-user',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'test-user-123',
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should extract user ID from x-user-id header when user object is not available', async () => {
+      mockRequest = { ...mockRequest, user: undefined, headers: { 'x-user-id': 'header-user-456' } };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-header-user',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'header-user-456',
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should handle undefined user ID gracefully', async () => {
+      mockRequest = { ...mockRequest, user: undefined, headers: {} };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-no-user',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: undefined,
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should extract client IP from various sources', async () => {
+      mockRequest = { 
+        ...mockRequest, 
+        headers: { 'x-forwarded-for': '192.168.1.100' },
+        connection: undefined 
+      };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-forwarded-ip',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: '192.168.1.100',
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should use "unknown" when no IP is available', async () => {
+      mockRequest = { 
+        ...mockRequest, 
+        headers: {},
+        connection: undefined,
+        socket: undefined
+      };
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-unknown-ip',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ipAddress: 'unknown',
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should include User-Agent in audit log', async () => {
+      (mockRequest.get as jest.Mock).mockReturnValue('Mozilla/5.0 Test Agent');
+
+      const mockTransaction: MockTransaction = { 
+        id: 'tx-user-agent',
+        commit: jest.fn(),
+        rollback: jest.fn(),
+        afterCommit: jest.fn(),
+      };
+      transactionService.runInTransaction.mockImplementation(async (callback) => {
+        await callback(mockTransaction as any);
+      });
+
+      await middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+
+      expect(auditService.logCreateWithTransaction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userAgent: 'Mozilla/5.0 Test Agent',
+        }),
+        mockTransaction
+      );
+    });
+
+    it('should handle non-Error exceptions gracefully', async () => {
+      const stringError = 'String error message';
+      transactionService.runInTransaction.mockRejectedValue(stringError);
+
+      await expect(
+        middleware.use(mockRequest as Request, mockResponse as Response, nextFunction)
+      ).rejects.toBe(stringError);
+
+      expect(auditService.logCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          newValues: expect.objectContaining({
+            error: 'Unknown error',
+          }),
+        })
+      );
+    });
+  });
+});

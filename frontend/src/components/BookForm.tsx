@@ -165,9 +165,15 @@ export const BookForm: React.FC<BookFormProps> = ({ book, onSave, onCancel }) =>
       
       case 'isbn':
         if (value && value.trim().length > 0) {
-          const isbnRegex = /^(?:ISBN(?:-1[03])?:? )?(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]$/;
-          if (!isbnRegex.test(value.trim().replace(/[-\s]/g, ''))) {
-            return 'Formato de ISBN inválido';
+          // Limpiar el ISBN de guiones y espacios
+          const cleanIsbn = value.trim().replace(/[-\s]/g, '');
+          
+          // Validar ISBN-10 o ISBN-13
+          const isbn10Regex = /^[0-9]{9}[0-9X]$/i;
+          const isbn13Regex = /^(978|979)[0-9]{10}$/;
+          
+          if (!isbn10Regex.test(cleanIsbn) && !isbn13Regex.test(cleanIsbn)) {
+            return 'El ISBN debe tener 10 dígitos (ISBN-10) o 13 dígitos empezando por 978/979 (ISBN-13), puede incluir X al final para ISBN-10';
           }
         }
         break;
@@ -581,14 +587,14 @@ export const BookForm: React.FC<BookFormProps> = ({ book, onSave, onCancel }) =>
                 value={formData.isbn}
                 onChange={handleChange}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="978-XXXXXXXXXX"
+                placeholder="Ej: 9781234567890 o 123456789X"
                 style={{
                   display: 'block',
                   width: '100%',
                   maxWidth: '100%',
                   boxSizing: 'border-box',
                   padding: '0.5rem 0.75rem',
-                  border: '1px solid #d1d5db',
+                  border: `1px solid ${errors.isbn ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.5rem',
                   fontSize: '0.875rem',
                   outline: 'none',
@@ -596,13 +602,14 @@ export const BookForm: React.FC<BookFormProps> = ({ book, onSave, onCancel }) =>
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#3b82f6';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+                  e.target.style.boxShadow = `0 0 0 3px rgba(${errors.isbn ? '220, 38, 38' : '59, 130, 246'}, 0.1)`;
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = '#d1d5db';
                   e.target.style.boxShadow = 'none';
                 }}
               />
+              <ErrorMessage error={errors.isbn} />
             </div>
 
             <div style={{ marginBottom: '1rem', width: '100%', boxSizing: 'border-box' }}>

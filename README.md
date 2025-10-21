@@ -9,42 +9,43 @@
 
 Una aplicación web completa para la gestión de inventario de la tienda CMPC-libros, desarrollada con React + TypeScript en el frontend y NestJS + TypeScript en el backend, utilizando PostgreSQL como base de datos.
 
-## 🌟 Demo en Vivo
+## Demo en Vivo
 - **Frontend**: [http://localhost:3000](http://localhost:3000) (ejecutar con Docker)
 - **API Swagger**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
 
-## 📸 Screenshots
+## Screenshots
 *Próximamente: Capturas de pantalla de la aplicación*
 
-## 🚀 Características Principales
+## Características Principales
 
 ### Frontend (React + TypeScript)
-- ✅ Sistema de autenticación JWT
-- ✅ Listado de libros con filtrado avanzado y paginación
-- ✅ Búsqueda en tiempo real con debounce
-- ✅ Formularios reactivos con validación
-- ✅ Carga de imágenes de libros
-- ✅ Interfaz responsive con Tailwind CSS
-- ✅ Gestión de estado con Redux Toolkit
-- ✅ Manejo de errores y notificaciones
+- Sistema de autenticación JWT
+- Listado de libros con filtrado avanzado y paginación
+- Búsqueda en tiempo real con debounce
+- Formularios reactivos con validación
+- Carga de imágenes de libros
+- Interfaz responsive con Tailwind CSS
+- Gestión de estado con Redux Toolkit
+- Manejo de errores y notificaciones
 
 ### Backend (NestJS + TypeScript)
-- ✅ Arquitectura modular siguiendo principios SOLID
-- ✅ Autenticación JWT con Passport
-- ✅ API RESTful completa con Swagger
-- ✅ Soft delete para manejo de eliminaciones
-- ✅ Sistema de auditoría y logging
-- ✅ Exportación de datos en CSV
-- ✅ Validación de datos con class-validator
-- ✅ Interceptores para transformación de respuestas
-- ✅ Rate limiting y seguridad
+- Arquitectura modular siguiendo principios SOLID
+- Autenticación JWT con Passport
+- API RESTful completa con Swagger
+- Soft delete para manejo de eliminaciones
+- Sistema de auditoría y logging
+- Exportación de datos en CSV
+- Validación de datos con class-validator
+- Interceptores para transformación de respuestas
+- Rate limiting y seguridad
 
 ### Base de Datos (PostgreSQL + Sequelize)
-- ✅ Modelo de datos normalizado
-- ✅ Relaciones entre tablas optimizadas
-- ✅ Índices para consultas eficientes
-- ✅ Transacciones para integridad de datos
-- ✅ Auditoría completa de operaciones
+- Modelo de datos normalizado
+- Relaciones entre tablas optimizadas
+- Índices para consultas eficientes
+- Transacciones para integridad de datos
+- Auditoría completa de operaciones
+- **[Modelo Relacional Completo](./docs/database-model.md)** 📊
 
 ## 📋 Requisitos del Sistema
 
@@ -141,7 +142,7 @@ REACT_APP_API_URL=http://localhost:3001
 npm start
 ```
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ### Estructura del Proyecto
 ```
@@ -172,6 +173,8 @@ react-nestjs-cmpc-libros/
 
 ### Modelo de Base de Datos
 
+**[Ver Modelo Relacional Completo](./docs/database-model.md)**
+
 #### Entidades Principales
 - **Users**: Usuarios del sistema (admin/user)
 - **Books**: Catálogo de libros
@@ -187,23 +190,76 @@ react-nestjs-cmpc-libros/
 - Un género puede categorizar múltiples libros
 - Todas las operaciones se registran en audit_logs
 
-## 🧪 Testing
+#### Características Especiales
+- **Soft Deletes**: Eliminación suave para integridad referencial
+- **Sistema de Auditoría**: Trazabilidad completa de cambios
+- **Autenticación JWT**: Control de acceso y sesiones
+- **Relaciones Optimizadas**: Índices para consultas eficientes
 
-### Backend
+**Visualización**: Usa [dbdiagram.io](https://dbdiagram.io/) con el archivo `docs/database-schema.dbml`
+
+## Testing Completo
+
+El proyecto incluye una **infraestructura de testing completa** con pruebas unitarias, de integración y de rendimiento que garantizan la calidad y estabilidad del código.
+
+### Coverage Actual
+- **Statements**: 71.27% (861/1208)
+- **Functions**: 71.85% (143/199)
+- **Lines**: 71.06% (791/1113)
+- **Branches**: 59.05% (287/486)
+
+### Ejecutar Pruebas Unitarias
+
+#### **Backend (NestJS)**
+
 ```bash
 cd backend
 
-# Tests unitarios
+# Tests unitarios completos
 npm run test
 
-# Tests con cobertura
+# Tests con reporte de cobertura
 npm run test:cov
 
-# Tests e2e
+# Tests específicos por patrón
+npm test -- --testPathPattern="books"
+npm test -- --testPathPattern="auth"
+npm test -- --testPathPattern="audit"
+
+# Tests en modo watch (desarrollo)
+npm run test:watch
+
+# Tests con debug
+npm run test:debug
+
+# Tests de integración E2E
 npm run test:e2e
+
+# Tests de performance
+npm run test:performance
 ```
 
-### Frontend
+#### **Comandos de Testing Avanzados**
+
+```bash
+# Tests con salida detallada
+npm test -- --verbose
+
+# Tests con coverage específico
+npm test -- --collectCoverageFrom="src/books/**/*.(t|j)s"
+
+# Tests con reportes en diferentes formatos
+npm run test:cov -- --coverageReporters=text-lcov
+
+# Tests con filtro por describe/it
+npm test -- --testNamePattern="should create book"
+
+# Tests con configuración personalizada
+npm test -- --config=jest-unit.config.js
+```
+
+#### **Frontend (React)**
+
 ```bash
 cd frontend
 
@@ -212,9 +268,25 @@ npm test
 
 # Tests con cobertura
 npm test -- --coverage
+
+# Tests en modo watch
+npm test -- --watch
+
+# Tests específicos
+npm test -- --testPathPattern="components"
+
+# Actualizar snapshots
+npm test -- --updateSnapshot
 ```
 
-## 📊 Uso de la Aplicación
+### Métricas de Calidad
+
+#### **Coverage Reports**
+```bash
+# Generar reporte HTML completo
+npm run test:cov
+
+## Uso de la Aplicación
 
 ### Credenciales por Defecto
 - **Email**: admin@cmpc-libros.com
@@ -239,7 +311,7 @@ npm test -- --coverage
 - **CSV**: Exportar datos de libros
 - **Auditoría**: Historial completo de operaciones
 
-## 🔧 Configuración Avanzada
+## Configuración Avanzada
 
 ### Variables de Entorno del Backend
 ```env
@@ -276,7 +348,7 @@ REACT_APP_APP_NAME=CMPC-libros
 REACT_APP_VERSION=1.0.0
 ```
 
-## 🚀 Despliegue en Producción
+## Despliegue en Producción
 
 ### Con Docker
 ```bash
@@ -297,7 +369,7 @@ cd frontend && npm run build
 3. Configurar servidor web (nginx) para servir el frontend
 4. Configurar reverse proxy para la API
 
-## 🤝 Contribución
+## Contribución
 
 1. Fork del repositorio
 2. Crear rama feature (`git checkout -b feature/nueva-caracteristica`)
@@ -305,11 +377,11 @@ cd frontend && npm run build
 4. Push a la rama (`git push origin feature/nueva-caracteristica`)
 5. Crear Pull Request
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## 🐛 Solución de Problemas
+## Solución de Problemas
 
 ### Problemas Comunes
 
@@ -324,7 +396,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
    - Verificar permisos de la carpeta `uploads`
    - Comprobar tamaño máximo de archivo
 
-## 📞 Soporte
+## Soporte
 
 Para soporte técnico o preguntas:
 - Crear un issue en el repositorio
@@ -332,4 +404,4 @@ Para soporte técnico o preguntas:
 
 ---
 
-**CMPC-libros** - Digitalizando la gestión de inventario de libros 📚
+**CMPC-libros** - Digitalizando la gestión de inventario de libros

@@ -20,6 +20,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.UUID,
     allowNull: true,
+    field: 'user_id', // Map to snake_case in database
   })
   userId: string;
 
@@ -40,6 +41,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.STRING(100),
     allowNull: false,
+    field: 'table_name', // Map to snake_case in database
   })
   tableName: string;
 
@@ -50,6 +52,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.UUID,
     allowNull: true,
+    field: 'record_id', // Map to snake_case in database
   })
   recordId: string;
 
@@ -61,6 +64,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.JSONB,
     allowNull: true,
+    field: 'old_values', // Map to snake_case in database
   })
   oldValues: object;
 
@@ -72,6 +76,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.JSONB,
     allowNull: true,
+    field: 'new_values', // Map to snake_case in database
   })
   newValues: object;
 
@@ -83,6 +88,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.INET,
     allowNull: true,
+    field: 'ip_address', // Map to snake_case in database
   })
   ipAddress: string;
 
@@ -94,6 +100,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    field: 'user_agent', // Map to snake_case in database
   })
   userAgent: string;
 
@@ -104,6 +111,7 @@ export class AuditLog extends Model<AuditLog> {
   @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
+    field: 'created_at', // Map to snake_case in database
   })
   createdAt: Date;
 }

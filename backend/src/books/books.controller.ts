@@ -1,17 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, BadRequestException, Res, Req, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { BooksService } from './books.service';
 import { Book } from './entities/book.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Books')
 @Controller('books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
+  private getAuditContext(req: Request) {
+    const userId = (req.user as any)?.id || '1'; // Fallback al usuario demo
+    const ipAddress = req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for'] as string || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    return {
+      userId,
+      ipAddress,
+      userAgent,
+    };
+  }
+
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create book' })
   @ApiResponse({ status: 201, description: 'Book created successfully', type: Book })
   @UseInterceptors(FileInterceptor('image', {
@@ -55,9 +71,8 @@ export class BooksController {
       genreId?: string;
     },
     @UploadedFile() image?: Express.Multer.File,
+    @Req() req?: Request,
   ): Promise<Book> {
-    console.log('Create book request:', createBookDto);
-    console.log('Uploaded file:', image);
     
     // Validar campos obligatorios
     if (!createBookDto.title?.trim()) {
@@ -85,9 +100,7 @@ export class BooksController {
                 (createBookDto.imageUrl?.trim() ? createBookDto.imageUrl.trim() : undefined),
     };
     
-    console.log('Final book data:', bookData);
-    
-    return this.booksService.create(bookData);
+    return this.booksService.create(bookData, this.getAuditContext(req));
   }
 
   @Get()
@@ -145,6 +158,8 @@ export class BooksController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update book' })
   @ApiResponse({ status: 200, description: 'Book updated successfully', type: Book })
   @UseInterceptors(FileInterceptor('image', {
@@ -176,10 +191,8 @@ export class BooksController {
     @Param('id') id: string,
     @Body() updateBookDto: Partial<Book> & { imageUrl?: string },
     @UploadedFile() image?: Express.Multer.File,
+    @Req() req?: Request,
   ): Promise<Book | null> {
-    console.log('Update book request for ID:', id);
-    console.log('Update data:', updateBookDto);
-    console.log('Uploaded file:', image);
     
     const bookData: Partial<Book> = {
       ...updateBookDto,
@@ -211,34 +224,82 @@ export class BooksController {
     // Manejar imagen: archivo subido tiene prioridad sobre URL
     if (image) {
       bookData.imageUrl = `/uploads/${image.filename}`;
-      console.log('File uploaded, setting imageUrl to:', bookData.imageUrl);
     } else if (updateBookDto.imageUrl !== undefined) {
       // Si se envía imageUrl (incluso vacía), actualizarla
       bookData.imageUrl = updateBookDto.imageUrl?.trim() || null;
-      console.log('Using provided imageUrl:', bookData.imageUrl);
     }
     // Si no hay imagen ni URL, no modificar el campo imageUrl existente
     
-    console.log('Final update data:', bookData);
-    
-    return this.booksService.update(id, bookData);
+    return this.booksService.update(id, bookData, this.getAuditContext(req));
+  }
+
+  @Get('export/csv')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Export books to CSV' })
+  @ApiResponse({ status: 200, description: 'CSV file generated successfully' })
+  async exportToCsv(
+    @Query('title') title?: string,
+    @Query('authorId') authorId?: string,
+    @Query('publisherId') publisherId?: string,
+    @Query('genreId') genreId?: string,
+    @Query('isAvailable') isAvailable?: string,
+    @Res() res?: Response,
+    @Req() req?: Request,
+  ): Promise<void> {
+    const filters: {
+      title?: string;
+      authorId?: string;
+      publisherId?: string;
+      genreId?: string;
+      isAvailable?: string;
+    } = {
+      title,
+      authorId,
+      publisherId,
+      genreId,
+      isAvailable,
+    };
+
+    // Remove undefined values from filters
+    Object.keys(filters).forEach(key => {
+      if (filters[key as keyof typeof filters] === undefined) {
+        delete filters[key as keyof typeof filters];
+      }
+    });
+
+    try {
+      const csvData = await this.booksService.exportToCsv(filters, this.getAuditContext(req));
+      
+      // Set headers for CSV download
+      const filename = `libros_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      
+      // Add BOM for proper UTF-8 encoding in Excel
+      res.write('\uFEFF');
+      res.end(csvData);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      throw new BadRequestException('Error al generar el archivo CSV');
+    }
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete book (soft delete)' })
   @ApiResponse({ status: 200, description: 'Book deleted successfully' })
-  async remove(@Param('id') id: string): Promise<{ message: string }> {
-    console.log('Delete book request for ID:', id);
-    
+  async remove(@Param('id') id: string, @Req() req?: Request): Promise<{ message: string }> {
     const book = await this.booksService.findById(id);
     if (!book) {
       throw new BadRequestException('Libro no encontrado');
     }
     
-    const result = await this.booksService.remove(id);
+    const result = await this.booksService.remove(id, this.getAuditContext(req));
     
     if (result) {
-      console.log('Book deleted successfully:', id);
       return { message: 'Libro eliminado exitosamente' };
     } else {
       throw new BadRequestException('Error al eliminar el libro');

@@ -8,10 +8,15 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user')),
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role VARCHAR(50) DEFAULT 'user' NOT NULL CHECK (role IN ('admin', 'user')),
+    is_active BOOLEAN DEFAULT true NOT NULL,
+    last_login TIMESTAMP NULL,
+    last_login_ip VARCHAR(15) NULL,
+    login_attempts INTEGER DEFAULT 0 NOT NULL,
+    locked_until TIMESTAMP NULL,
+    password_changed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at TIMESTAMP NULL
 );
 
@@ -125,5 +130,5 @@ ON CONFLICT DO NOTHING;
 -- Insert a default admin user (password: admin123)
 -- Hash generated with bcrypt for password "admin123"
 INSERT INTO users (email, password, first_name, last_name, role) VALUES 
-    ('admin@cmpc-libros.com', '$2b$10$K8f2QK2f2Qf2Qf2Qf2Qf2OZ9mE5lhE5lhE5lhE5lhE5lhE5lhE5li', 'Admin', 'User', 'admin')
+    ('admin@cmpc-libros.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', 'User', 'admin')
 ON CONFLICT (email) DO NOTHING;

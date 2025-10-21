@@ -1,5 +1,5 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+﻿import { NestFactory } from '@nestjs/core';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
@@ -9,7 +9,6 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security with custom configuration for image serving
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -23,16 +22,13 @@ async function bootstrap() {
     crossOriginResourcePolicy: { policy: "cross-origin" }
   }));
 
-  // CORS
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
 
-  // Serve static files for uploads
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -41,10 +37,8 @@ async function bootstrap() {
     }),
   );
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
-  // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('CMPC-libros API')
     .setDescription('API for CMPC-libros book store management system')
@@ -56,10 +50,10 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+  Logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
+  Logger.log(`Swagger docs: http://localhost:${port}/api/docs`, 'Bootstrap');
 }
 
 bootstrap();

@@ -21,18 +21,37 @@ import { AuditModule } from './audit/audit.module';
     // Database configuration
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        dialect: 'postgres',
-        host: configService.get('DATABASE_HOST') || 'postgres',
-        port: parseInt(configService.get('DATABASE_PORT')) || 5432,
-        username: configService.get('DATABASE_USER') || 'postgres',
-        password: configService.get('DATABASE_PASSWORD') || 'postgres123',
-        database: configService.get('DATABASE_NAME') || 'cmpc_libros',
-        models: [],
-        autoLoadModels: true,
-        synchronize: false,
-        logging: process.env.NODE_ENV === 'development' ? console.log : false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        // Use SQLite only in local development when explicitly enabled
+        // In Docker environment, always use PostgreSQL
+        const useSqlite = configService.get('USE_SQLITE') === 'true' && 
+                          configService.get('DATABASE_HOST') === 'localhost';
+        
+        if (useSqlite) {
+          return {
+            dialect: 'sqlite',
+            storage: configService.get('DATABASE_NAME') || 'cmpc_libros_test.db',
+            models: [],
+            autoLoadModels: true,
+            synchronize: true, // Auto-create tables for SQLite
+            logging: process.env.NODE_ENV === 'development' ? console.log : false,
+          };
+        }
+        
+        // Default to PostgreSQL (Docker and production)
+        return {
+          dialect: 'postgres',
+          host: configService.get('DATABASE_HOST') || 'postgres',
+          port: parseInt(configService.get('DATABASE_PORT')) || 5432,
+          username: configService.get('DATABASE_USER') || 'postgres',
+          password: configService.get('DATABASE_PASSWORD') || 'postgres123',
+          database: configService.get('DATABASE_NAME') || 'cmpc_libros',
+          models: [],
+          autoLoadModels: true,
+          synchronize: false,
+          logging: process.env.NODE_ENV === 'development' ? console.log : false,
+        };
+      },
       inject: [ConfigService],
     }),
 
