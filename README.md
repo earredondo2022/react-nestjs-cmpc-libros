@@ -19,32 +19,10 @@ Una aplicación web completa para la gestión de inventario de la tienda CMPC-li
 ## Características Principales
 
 ### Frontend (React + TypeScript)
-- Sistema de autenticación JWT
-- Listado de libros con filtrado avanzado y paginación
-- Búsqueda en tiempo real con debounce
-- Formularios reactivos con validación
-- Carga de imágenes de libros
-- Interfaz responsive con Tailwind CSS
-- Gestión de estado con Redux Toolkit
-- Manejo de errores y notificaciones
 
 ### Backend (NestJS + TypeScript)
-- Arquitectura modular siguiendo principios SOLID
-- Autenticación JWT con Passport
-- API RESTful completa con Swagger
-- Soft delete para manejo de eliminaciones
-- Sistema de auditoría y logging
-- Exportación de datos en CSV
-- Validación de datos con class-validator
-- Interceptores para transformación de respuestas
-- Rate limiting y seguridad
 
 ### Base de Datos (PostgreSQL + Sequelize)
-- Modelo de datos normalizado
-- Relaciones entre tablas optimizadas
-- Índices para consultas eficientes
-- Transacciones para integridad de datos
-- Auditoría completa de operaciones
 - **[Modelo Relacional Completo](./docs/database-model.md)** 📊
 
 ## 📋 Requisitos del Sistema
