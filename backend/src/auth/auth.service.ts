@@ -1,6 +1,5 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 import { UserService, CreateUserDto, ChangePasswordDto } from './user.service';
 import { User } from './entities/user.entity';
 import { TransactionService } from '../common/services/transaction.service';
@@ -34,16 +33,6 @@ export interface LoginResponse {
 
 @Injectable()
 export class AuthService {
-  // Keeping hardcoded user for backward compatibility
-  private readonly demoUser: AuthUser = {
-    id: '1',
-    email: 'admin@cmpc-libros.com',
-    password: '$2a$10$mBjC92mlR1YPL3Ua1Uewvuju6xKE51LfSrWskEYfbkoshe6cPgdT6', // admin123
-    firstName: 'Admin',
-    lastName: 'CMPC',
-    role: 'admin'
-  };
-
   constructor(
     private jwtService: JwtService,
     private userService: UserService,
@@ -91,25 +80,6 @@ export class AuthService {
 
           // Handle successful login
           await this.userService.handleSuccessfulLogin(user.id, ipAddress);
-        }
-      } else {
-        // Fallback to demo user for backward compatibility
-        if (email === this.demoUser.email && await bcrypt.compare(password, this.demoUser.password)) {
-          validatedUser = this.demoUser;
-
-          // Log demo user login
-          await this.auditService.logCreateWithTransaction({
-            tableName: 'auth_sessions',
-            recordId: this.demoUser.id,
-            newValues: { 
-              userId: this.demoUser.id,
-              email: this.demoUser.email,
-              loginType: 'demo_user',
-            },
-            ipAddress,
-            userAgent,
-            description: `Login exitoso para usuario demo: ${this.demoUser.email}`,
-          }, transaction);
         }
       }
 
@@ -244,11 +214,6 @@ export class AuthService {
         };
       }
     }
-
-    // Fallback to demo user
-    if (email === this.demoUser.email && await bcrypt.compare(password, this.demoUser.password)) {
-      return this.demoUser;
-    }
     
     return null;
   }
@@ -292,11 +257,6 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
       };
-    }
-
-    // Fallback to demo user
-    if (payload.sub === this.demoUser.id) {
-      return this.demoUser;
     }
     
     return null;
