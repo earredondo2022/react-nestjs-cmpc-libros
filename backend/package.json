@@ -23,6 +23,8 @@
     "test:e2e:cov": "jest --config ./test/jest-e2e.json --coverage",
     "test:all": "npm run test:cov && npm run test:e2e:cov",
     "test:perf": "artillery run test/performance/load-test.yml",
+    "test:books": "jest --config jest.books.config.js",
+    "test:books:watch": "jest --config jest.books.config.js --watch",
     "migration:generate": "sequelize-cli migration:generate",
     "migration:run": "sequelize-cli db:migrate",
     "migration:revert": "sequelize-cli db:migrate:undo"
@@ -123,9 +125,6 @@
       }
     },
     "testEnvironment": "node",
-    "setupFilesAfterEnv": [
-      "<rootDir>/../test/setup.ts"
-    ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
     }

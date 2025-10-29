@@ -13,9 +13,6 @@ Una aplicación web completa para la gestión de inventario de la tienda CMPC-li
 - **Frontend**: [http://localhost:3000](http://localhost:3000) (ejecutar con Docker)
 - **API Swagger**: [http://localhost:3001/api/docs](http://localhost:3001/api/docs)
 
-## Screenshots
-*Próximamente: Capturas de pantalla de la aplicación*
-
 ## Características Principales
 
 ### Frontend (React + TypeScript)
@@ -23,15 +20,15 @@ Una aplicación web completa para la gestión de inventario de la tienda CMPC-li
 ### Backend (NestJS + TypeScript)
 
 ### Base de Datos (PostgreSQL + Sequelize)
-- **[Modelo Relacional Completo](./docs/database-model.md)** 📊
+- **[Modelo Relacional Completo](./docs/database-model.md)**
 
-## 📋 Requisitos del Sistema
+## Requisitos del Sistema
 
 - Node.js >= 18.x
 - Docker y Docker Compose
 - PostgreSQL >= 13 (si no usa Docker)
 
-## 🛠️ Instalación y Configuración
+## Instalación y Configuración
 
 ### Opción 1: Con Docker (Recomendado)
 
@@ -168,126 +165,46 @@ react-nestjs-cmpc-libros/
 - Un género puede categorizar múltiples libros
 - Todas las operaciones se registran en audit_logs
 
-#### Características Especiales
-- **Soft Deletes**: Eliminación suave para integridad referencial
-- **Sistema de Auditoría**: Trazabilidad completa de cambios
-- **Autenticación JWT**: Control de acceso y sesiones
-- **Relaciones Optimizadas**: Índices para consultas eficientes
-
 **Visualización**: Usa [dbdiagram.io](https://dbdiagram.io/) con el archivo `docs/database-schema.dbml`
 
-## Testing Completo
-
-El proyecto incluye una **infraestructura de testing completa** con pruebas unitarias, de integración y de rendimiento que garantizan la calidad y estabilidad del código.
-
-### Coverage Actual
-- **Statements**: 71.27% (861/1208)
-- **Functions**: 71.85% (143/199)
-- **Lines**: 71.06% (791/1113)
-- **Branches**: 59.05% (287/486)
 
 ### Ejecutar Pruebas Unitarias
 
 #### **Backend (NestJS)**
 
+#### **Ejecutar Pruebas del Módulo Books**
+
 ```bash
 cd backend
 
-# Tests unitarios completos
-npm run test
+# COMANDO PRINCIPAL: Métricas de Cobertura - Módulo Books
+npm run test:books
 
-# Tests con reporte de cobertura
-npm run test:cov
+#### **Métricas de Cobertura - Módulo Books**
+- **Statements**: **73.96%** (179/242)
+- **Branches**: **66.06%** (146/221) 
+- **Functions**: **68.57%** (24/35)
+- **Lines**: **75.1%** (172/229)
 
-# Tests específicos por patrón
-npm test -- --testPathPattern="books"
-npm test -- --testPathPattern="auth"
-npm test -- --testPathPattern="audit"
+#### **Tests Incluidos**
+- **BooksController** (42 tests): CRUD, validaciones, exportación CSV, manejo de errores
+- **BooksService** (12 tests): Lógica de negocio, filtros, paginación, operaciones DB
 
-# Tests en modo watch (desarrollo)
-npm run test:watch
+#### **Casos de Prueba Cubiertos**
+- **Creación de libros**: Con/sin imagen, validaciones de campos
+- **Consultas**: Paginación, filtros, ordenamiento, búsquedas
+- **Actualización**: Modificación parcial/completa, validaciones
+- **Eliminación**: Casos exitosos y libros no encontrados
+- **Exportación CSV**: Generación, filtros, manejo de errores
+- **Validaciones**: Campos requeridos, tipos de datos, límites
+- **Casos edge**: Valores extremos, caracteres especiales, errores de red
 
-# Tests con debug
-npm run test:debug
-
-# Tests de integración E2E
-npm run test:e2e
-
-# Tests de performance
-npm run test:performance
-```
-
-#### **Comandos de Testing Avanzados**
-
-```bash
-# Tests con salida detallada
-npm test -- --verbose
-
-# Tests con coverage específico
-npm test -- --collectCoverageFrom="src/books/**/*.(t|j)s"
-
-# Tests con reportes en diferentes formatos
-npm run test:cov -- --coverageReporters=text-lcov
-
-# Tests con filtro por describe/it
-npm test -- --testNamePattern="should create book"
-
-# Tests con configuración personalizada
-npm test -- --config=jest-unit.config.js
-```
-
-#### **Frontend (React)**
-
-```bash
-cd frontend
-
-# Tests unitarios
-npm test
-
-# Tests con cobertura
-npm test -- --coverage
-
-# Tests en modo watch
-npm test -- --watch
-
-# Tests específicos
-npm test -- --testPathPattern="components"
-
-# Actualizar snapshots
-npm test -- --updateSnapshot
-```
-
-### Métricas de Calidad
-
-#### **Coverage Reports**
-```bash
-# Generar reporte HTML completo
-npm run test:cov
 
 ## Uso de la Aplicación
 
 ### Credenciales por Defecto
 - **Email**: admin@cmpc-libros.com
 - **Password**: admin123
-
-### Funcionalidades Principales
-
-#### Gestión de Libros
-1. **Listado**: Ver todos los libros con paginación
-2. **Filtrado**: Por género, editorial, autor, disponibilidad
-3. **Búsqueda**: Búsqueda en tiempo real por título
-4. **Ordenamiento**: Por título, precio, fecha, etc.
-5. **CRUD**: Crear, leer, actualizar, eliminar libros
-6. **Imágenes**: Subir y gestionar imágenes de portada
-
-#### Gestión de Catálogos
-- **Autores**: Gestión completa de autores
-- **Editoriales**: Gestión de casas editoriales
-- **Géneros**: Categorización de libros
-
-#### Reportes y Exportación
-- **CSV**: Exportar datos de libros
-- **Auditoría**: Historial completo de operaciones
 
 ## Configuración Avanzada
 
@@ -346,40 +263,5 @@ cd frontend && npm run build
 ```
 3. Configurar servidor web (nginx) para servir el frontend
 4. Configurar reverse proxy para la API
-
-## Contribución
-
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-caracteristica`)
-3. Commit de cambios (`git commit -am 'Agregar nueva característica'`)
-4. Push a la rama (`git push origin feature/nueva-caracteristica`)
-5. Crear Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## Solución de Problemas
-
-### Problemas Comunes
-
-1. **Error de conexión a base de datos**
-   - Verificar que PostgreSQL esté ejecutándose
-   - Revisar las credenciales en variables de entorno
-
-2. **Error CORS**
-   - Verificar FRONTEND_URL en variables de entorno del backend
-
-3. **Archivos no se suben**
-   - Verificar permisos de la carpeta `uploads`
-   - Comprobar tamaño máximo de archivo
-
-## Soporte
-
-Para soporte técnico o preguntas:
-- Crear un issue en el repositorio
-- Contactar al equipo de desarrollo
-
----
 
 **CMPC-libros** - Digitalizando la gestión de inventario de libros
