@@ -68,11 +68,12 @@ let TransactionService = class TransactionService {
         }
     }
     async getConnectionStats() {
+        var _a;
         const config = this.sequelize.config;
         return {
             databaseName: config.database || 'unknown',
             dialect: this.sequelize.getDialect() || 'unknown',
-            connectionPoolMax: config.pool?.max || 5,
+            connectionPoolMax: ((_a = config.pool) === null || _a === void 0 ? void 0 : _a.max) || 5,
         };
     }
     async runInTransactionWithTimeout(callback, timeoutMs = 30000, isolationLevel) {

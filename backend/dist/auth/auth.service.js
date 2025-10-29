@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const bcrypt = require("bcryptjs");
 const user_service_1 = require("./user.service");
 const transaction_service_1 = require("../common/services/transaction.service");
 const audit_service_1 = require("../audit/audit.service");
@@ -22,14 +21,6 @@ let AuthService = class AuthService {
         this.userService = userService;
         this.transactionService = transactionService;
         this.auditService = auditService;
-        this.demoUser = {
-            id: '1',
-            email: 'admin@cmpc-libros.com',
-            password: '$2a$10$mBjC92mlR1YPL3Ua1Uewvuju6xKE51LfSrWskEYfbkoshe6cPgdT6',
-            firstName: 'Admin',
-            lastName: 'CMPC',
-            role: 'admin'
-        };
     }
     async login(loginData, ipAddress, userAgent) {
         const { email, password } = loginData;
@@ -55,23 +46,6 @@ let AuthService = class AuthService {
                         role: user.role,
                     };
                     await this.userService.handleSuccessfulLogin(user.id, ipAddress);
-                }
-            }
-            else {
-                if (email === this.demoUser.email && await bcrypt.compare(password, this.demoUser.password)) {
-                    validatedUser = this.demoUser;
-                    await this.auditService.logCreateWithTransaction({
-                        tableName: 'auth_sessions',
-                        recordId: this.demoUser.id,
-                        newValues: {
-                            userId: this.demoUser.id,
-                            email: this.demoUser.email,
-                            loginType: 'demo_user',
-                        },
-                        ipAddress,
-                        userAgent,
-                        description: `Login exitoso para usuario demo: ${this.demoUser.email}`,
-                    }, transaction);
                 }
             }
             if (!validatedUser) {
@@ -135,8 +109,8 @@ let AuthService = class AuthService {
                     email: newUser.email,
                     action: 'registration_auto_login',
                 },
-                ipAddress: auditContext?.ipAddress,
-                userAgent: auditContext?.userAgent,
+                ipAddress: auditContext === null || auditContext === void 0 ? void 0 : auditContext.ipAddress,
+                userAgent: auditContext === null || auditContext === void 0 ? void 0 : auditContext.userAgent,
                 description: `Auto-login después del registro para usuario: ${newUser.email}`,
             }, transaction);
             return {
@@ -168,9 +142,6 @@ let AuthService = class AuthService {
                     role: user.role,
                 };
             }
-        }
-        if (email === this.demoUser.email && await bcrypt.compare(password, this.demoUser.password)) {
-            return this.demoUser;
         }
         return null;
     }
@@ -205,9 +176,6 @@ let AuthService = class AuthService {
                 role: user.role,
             };
         }
-        if (payload.sub === this.demoUser.id) {
-            return this.demoUser;
-        }
         return null;
     }
     async logout(userId, auditContext) {
@@ -219,8 +187,8 @@ let AuthService = class AuthService {
                 action: 'logout',
                 timestamp: new Date(),
             },
-            ipAddress: auditContext?.ipAddress,
-            userAgent: auditContext?.userAgent,
+            ipAddress: auditContext === null || auditContext === void 0 ? void 0 : auditContext.ipAddress,
+            userAgent: auditContext === null || auditContext === void 0 ? void 0 : auditContext.userAgent,
             description: `Usuario cerró sesión`,
         });
     }

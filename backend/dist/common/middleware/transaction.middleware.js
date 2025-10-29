@@ -166,10 +166,11 @@ let TransactionMiddleware = TransactionMiddleware_1 = class TransactionMiddlewar
         return undefined;
     }
     getClientIP(req) {
+        var _a, _b;
         return (req.headers['x-forwarded-for'] ||
             req.headers['x-real-ip'] ||
-            req.connection?.remoteAddress ||
-            req.socket?.remoteAddress ||
+            ((_a = req.connection) === null || _a === void 0 ? void 0 : _a.remoteAddress) ||
+            ((_b = req.socket) === null || _b === void 0 ? void 0 : _b.remoteAddress) ||
             'unknown');
     }
 };

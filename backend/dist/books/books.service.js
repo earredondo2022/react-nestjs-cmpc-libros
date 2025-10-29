@@ -48,19 +48,19 @@ let BooksService = class BooksService {
     async findAll(page = 1, limit = 10, filters, sortBy = 'createdAt', sortOrder = 'DESC') {
         const offset = (page - 1) * limit;
         const where = {};
-        if (filters?.title) {
+        if (filters === null || filters === void 0 ? void 0 : filters.title) {
             where.title = { [sequelize_2.Op.iLike]: `%${filters.title}%` };
         }
-        if (filters?.authorId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.authorId) {
             where.author_id = filters.authorId;
         }
-        if (filters?.publisherId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.publisherId) {
             where.publisher_id = filters.publisherId;
         }
-        if (filters?.genreId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.genreId) {
             where.genre_id = filters.genreId;
         }
-        if (filters?.isAvailable !== undefined) {
+        if ((filters === null || filters === void 0 ? void 0 : filters.isAvailable) !== undefined) {
             const isAvailableValue = typeof filters.isAvailable === 'string'
                 ? filters.isAvailable === 'true'
                 : filters.isAvailable;
@@ -156,19 +156,19 @@ let BooksService = class BooksService {
     }
     async exportToCsv(filters, auditContext) {
         const where = {};
-        if (filters?.title) {
+        if (filters === null || filters === void 0 ? void 0 : filters.title) {
             where.title = { [sequelize_2.Op.iLike]: `%${filters.title}%` };
         }
-        if (filters?.authorId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.authorId) {
             where.author_id = filters.authorId;
         }
-        if (filters?.publisherId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.publisherId) {
             where.publisher_id = filters.publisherId;
         }
-        if (filters?.genreId) {
+        if (filters === null || filters === void 0 ? void 0 : filters.genreId) {
             where.genre_id = filters.genreId;
         }
-        if (filters?.isAvailable !== undefined) {
+        if ((filters === null || filters === void 0 ? void 0 : filters.isAvailable) !== undefined) {
             const isAvailableValue = filters.isAvailable === 'true';
             where.is_available = isAvailableValue;
         }
@@ -224,23 +224,26 @@ let BooksService = class BooksService {
             }
             return numPrice.toFixed(2);
         };
-        const csvRows = books.map(book => [
-            escapeCsvValue(book.id),
-            escapeCsvValue(book.title),
-            escapeCsvValue(book.isbn || ''),
-            escapeCsvValue(book.author?.name || ''),
-            escapeCsvValue(book.publisher?.name || ''),
-            escapeCsvValue(book.genre?.name || ''),
-            escapeCsvValue(formatPrice(book.price)),
-            escapeCsvValue(book.stockQuantity || 0),
-            escapeCsvValue(book.isAvailable ? 'Sí' : 'No'),
-            escapeCsvValue(book.publicationDate ? formatDate(book.publicationDate) : ''),
-            escapeCsvValue(book.pages || ''),
-            escapeCsvValue(book.description || ''),
-            escapeCsvValue(book.imageUrl || ''),
-            escapeCsvValue(formatDate(book.createdAt)),
-            escapeCsvValue(formatDate(book.updatedAt))
-        ].join(','));
+        const csvRows = books.map(book => {
+            var _a, _b, _c;
+            return [
+                escapeCsvValue(book.id),
+                escapeCsvValue(book.title),
+                escapeCsvValue(book.isbn || ''),
+                escapeCsvValue(((_a = book.author) === null || _a === void 0 ? void 0 : _a.name) || ''),
+                escapeCsvValue(((_b = book.publisher) === null || _b === void 0 ? void 0 : _b.name) || ''),
+                escapeCsvValue(((_c = book.genre) === null || _c === void 0 ? void 0 : _c.name) || ''),
+                escapeCsvValue(formatPrice(book.price)),
+                escapeCsvValue(book.stockQuantity || 0),
+                escapeCsvValue(book.isAvailable ? 'Sí' : 'No'),
+                escapeCsvValue(book.publicationDate ? formatDate(book.publicationDate) : ''),
+                escapeCsvValue(book.pages || ''),
+                escapeCsvValue(book.description || ''),
+                escapeCsvValue(book.imageUrl || ''),
+                escapeCsvValue(formatDate(book.createdAt)),
+                escapeCsvValue(formatDate(book.updatedAt))
+            ].join(',');
+        });
         const csvContent = [headers.join(','), ...csvRows].join('\n');
         if (auditContext) {
             await this.auditService.logExport({

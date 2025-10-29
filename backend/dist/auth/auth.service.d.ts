@@ -29,7 +29,6 @@ export declare class AuthService {
     private userService;
     private transactionService;
     private auditService;
-    private readonly demoUser;
     constructor(jwtService: JwtService, userService: UserService, transactionService: TransactionService, auditService: AuditService);
     login(loginData: LoginDto, ipAddress?: string, userAgent?: string): Promise<LoginResponse>;
     register(userData: CreateUserDto, auditContext?: {

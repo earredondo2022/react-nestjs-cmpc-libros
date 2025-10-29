@@ -58,17 +58,17 @@ let TransactionErrorHandler = TransactionErrorHandler_1 = class TransactionError
                 if (attempt > 1) {
                     this.logger.log(`Operation succeeded on attempt ${attempt}/${strategy.maxAttempts}`, context);
                     await this.auditService.logCreate({
-                        userId: context?.userId,
+                        userId: context === null || context === void 0 ? void 0 : context.userId,
                         tableName: 'transaction_retries',
-                        recordId: context?.transactionId || 'unknown',
+                        recordId: (context === null || context === void 0 ? void 0 : context.transactionId) || 'unknown',
                         newValues: {
-                            operation: context?.operation,
-                            entityType: context?.entityType,
-                            entityId: context?.entityId,
+                            operation: context === null || context === void 0 ? void 0 : context.operation,
+                            entityType: context === null || context === void 0 ? void 0 : context.entityType,
+                            entityId: context === null || context === void 0 ? void 0 : context.entityId,
                             attempt,
                             maxAttempts: strategy.maxAttempts,
                             status: 'success',
-                            lastError: lastError?.message,
+                            lastError: lastError === null || lastError === void 0 ? void 0 : lastError.message,
                         },
                         description: `Operación exitosa después de ${attempt} intentos`,
                     });
@@ -82,13 +82,13 @@ let TransactionErrorHandler = TransactionErrorHandler_1 = class TransactionError
                 this.logger.warn(`Attempt ${attempt}/${strategy.maxAttempts} failed: ${lastError.message}. Retryable: ${isRetryable}`, context);
                 if (!isRetryable || isLastAttempt) {
                     await this.auditService.logCreate({
-                        userId: context?.userId,
+                        userId: context === null || context === void 0 ? void 0 : context.userId,
                         tableName: 'transaction_retries',
-                        recordId: context?.transactionId || 'unknown',
+                        recordId: (context === null || context === void 0 ? void 0 : context.transactionId) || 'unknown',
                         newValues: {
-                            operation: context?.operation,
-                            entityType: context?.entityType,
-                            entityId: context?.entityId,
+                            operation: context === null || context === void 0 ? void 0 : context.operation,
+                            entityType: context === null || context === void 0 ? void 0 : context.entityType,
+                            entityId: context === null || context === void 0 ? void 0 : context.entityId,
                             attempt,
                             maxAttempts: strategy.maxAttempts,
                             status: 'failed',
@@ -244,23 +244,24 @@ let TransactionErrorHandler = TransactionErrorHandler_1 = class TransactionError
         return 'Data constraint violation. Please check your input and try again.';
     }
     async logTransactionError(transactionError, context) {
+        var _a, _b, _c;
         try {
             await this.auditService.logCreate({
-                userId: context?.userId,
+                userId: context === null || context === void 0 ? void 0 : context.userId,
                 tableName: 'transaction_errors',
-                recordId: context?.transactionId || 'unknown',
+                recordId: (context === null || context === void 0 ? void 0 : context.transactionId) || 'unknown',
                 newValues: {
                     errorType: transactionError.type,
                     errorMessage: transactionError.message,
-                    operation: context?.operation,
-                    entityType: context?.entityType,
-                    entityId: context?.entityId,
-                    retryable: transactionError.context?.retryable,
-                    originalError: transactionError.originalError?.message,
-                    stackTrace: transactionError.originalError?.stack,
+                    operation: context === null || context === void 0 ? void 0 : context.operation,
+                    entityType: context === null || context === void 0 ? void 0 : context.entityType,
+                    entityId: context === null || context === void 0 ? void 0 : context.entityId,
+                    retryable: (_a = transactionError.context) === null || _a === void 0 ? void 0 : _a.retryable,
+                    originalError: (_b = transactionError.originalError) === null || _b === void 0 ? void 0 : _b.message,
+                    stackTrace: (_c = transactionError.originalError) === null || _c === void 0 ? void 0 : _c.stack,
                 },
-                ipAddress: context?.ipAddress,
-                userAgent: context?.userAgent,
+                ipAddress: context === null || context === void 0 ? void 0 : context.ipAddress,
+                userAgent: context === null || context === void 0 ? void 0 : context.userAgent,
                 description: `Error en transacción: ${transactionError.type} - ${transactionError.message}`,
             });
         }

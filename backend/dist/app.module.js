@@ -17,7 +17,6 @@ const authors_module_1 = require("./authors/authors.module");
 const publishers_module_1 = require("./publishers/publishers.module");
 const genres_module_1 = require("./genres/genres.module");
 const audit_module_1 = require("./audit/audit.module");
-const test_module_1 = require("./test/test.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -69,7 +68,6 @@ exports.AppModule = AppModule = __decorate([
             publishers_module_1.PublishersModule,
             genres_module_1.GenresModule,
             audit_module_1.AuditModule,
-            test_module_1.TestModule,
         ],
         controllers: [],
         providers: [],

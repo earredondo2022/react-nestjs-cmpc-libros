@@ -15,10 +15,10 @@ import { AuditModule } from './audit/audit.module';
   imports: [
     // Environment configuration
     ConfigModule.forRoot({
-      isGlobal: true,
+      isGlobal: true, // Variables de entorno disponibles en toda la app
     }),
 
-    // Database configuration
+    // Database configuration: Configuración dinámica PostgreSQL/SQLite
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -55,21 +55,21 @@ import { AuditModule } from './audit/audit.module';
       inject: [ConfigService],
     }),
 
-    // Rate limiting
+    // Rate limiting: Protección contra spam (100 requests/minuto)
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        ttl: 60000, // 1 minuto
+        limit: 100, // 100 requests por minuto
       },
     ]),
 
-    // Feature modules
-    AuthModule,
-    BooksModule,
-    AuthorsModule,
-    PublishersModule,
-    GenresModule,
-    AuditModule,
+    // Registro de Módulos Funcionales
+    AuthModule,       // Autenticación JWT
+    BooksModule,      // Gestión de Libros
+    AuthorsModule,    // Gestión de Autores
+    PublishersModule, // Gestión de Editoriales
+    GenresModule,     // Gestión de Géneros
+    AuditModule,      // Auditoría
   ],
   controllers: [],
   providers: [],

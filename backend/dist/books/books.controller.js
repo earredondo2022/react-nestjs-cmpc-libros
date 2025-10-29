@@ -26,8 +26,9 @@ let BooksController = class BooksController {
         this.booksService = booksService;
     }
     getAuditContext(req) {
-        const userId = req.user?.id || '1';
-        const ipAddress = req.ip || req.connection?.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+        var _a, _b;
+        const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) || '1';
+        const ipAddress = req.ip || ((_b = req.connection) === null || _b === void 0 ? void 0 : _b.remoteAddress) || req.headers['x-forwarded-for'] || 'unknown';
         const userAgent = req.headers['user-agent'] || 'unknown';
         return {
             userId,
@@ -36,14 +37,15 @@ let BooksController = class BooksController {
         };
     }
     async create(createBookDto, image, req) {
-        if (!createBookDto.title?.trim()) {
+        var _a, _b, _c, _d;
+        if (!((_a = createBookDto.title) === null || _a === void 0 ? void 0 : _a.trim())) {
             throw new common_1.BadRequestException('El título es requerido');
         }
-        const price = parseFloat(createBookDto.price?.toString() || '0');
+        const price = parseFloat(((_b = createBookDto.price) === null || _b === void 0 ? void 0 : _b.toString()) || '0');
         if (isNaN(price) || price <= 0) {
             throw new common_1.BadRequestException('El precio es requerido y debe ser mayor que 0');
         }
-        const stockQuantity = parseInt(createBookDto.stockQuantity?.toString() || '0');
+        const stockQuantity = parseInt(((_c = createBookDto.stockQuantity) === null || _c === void 0 ? void 0 : _c.toString()) || '0');
         if (isNaN(stockQuantity) || stockQuantity < 0) {
             throw new common_1.BadRequestException('La cantidad en stock es requerida y debe ser mayor o igual a 0');
         }
@@ -52,7 +54,7 @@ let BooksController = class BooksController {
             price,
             stockQuantity,
             imageUrl: image ? `/uploads/${image.filename}` :
-                (createBookDto.imageUrl?.trim() ? createBookDto.imageUrl.trim() : undefined),
+                (((_d = createBookDto.imageUrl) === null || _d === void 0 ? void 0 : _d.trim()) ? createBookDto.imageUrl.trim() : undefined),
         };
         return this.booksService.create(bookData, this.getAuditContext(req));
     }
@@ -82,31 +84,32 @@ let BooksController = class BooksController {
         return this.booksService.findById(id);
     }
     async update(id, updateBookDto, image, req) {
+        var _a, _b, _c, _d;
         const bookData = {
             ...updateBookDto,
         };
         if (updateBookDto.price !== undefined) {
-            const price = parseFloat(updateBookDto.price?.toString() || '0');
+            const price = parseFloat(((_a = updateBookDto.price) === null || _a === void 0 ? void 0 : _a.toString()) || '0');
             if (isNaN(price) || price <= 0) {
                 throw new common_1.BadRequestException('El precio debe ser mayor que 0');
             }
             bookData.price = price;
         }
         if (updateBookDto.stockQuantity !== undefined) {
-            const stockQuantity = parseInt(updateBookDto.stockQuantity?.toString() || '0');
+            const stockQuantity = parseInt(((_b = updateBookDto.stockQuantity) === null || _b === void 0 ? void 0 : _b.toString()) || '0');
             if (isNaN(stockQuantity) || stockQuantity < 0) {
                 throw new common_1.BadRequestException('La cantidad en stock debe ser mayor o igual a 0');
             }
             bookData.stockQuantity = stockQuantity;
         }
-        if (updateBookDto.title !== undefined && !updateBookDto.title?.trim()) {
+        if (updateBookDto.title !== undefined && !((_c = updateBookDto.title) === null || _c === void 0 ? void 0 : _c.trim())) {
             throw new common_1.BadRequestException('El título no puede estar vacío');
         }
         if (image) {
             bookData.imageUrl = `/uploads/${image.filename}`;
         }
         else if (updateBookDto.imageUrl !== undefined) {
-            bookData.imageUrl = updateBookDto.imageUrl?.trim() || null;
+            bookData.imageUrl = ((_d = updateBookDto.imageUrl) === null || _d === void 0 ? void 0 : _d.trim()) || null;
         }
         return this.booksService.update(id, bookData, this.getAuditContext(req));
     }

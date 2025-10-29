@@ -37,6 +37,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
         const { batchSize = this.DEFAULT_BATCH_SIZE, continueOnError = false, validateOnly = false, updateExisting = false, auditContext, } = options;
         this.logger.log(`Starting CSV import. Validate only: ${validateOnly}, Update existing: ${updateExisting}`);
         return await this.transactionService.runInTransaction(async (transaction) => {
+            var _a, _b;
             const result = {
                 totalProcessed: 0,
                 successful: 0,
@@ -54,8 +55,8 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
                     result.successful += batchResult.successful;
                     result.failed += batchResult.failed;
                     result.errors.push(...batchResult.errors);
-                    result.created?.push(...(batchResult.created || []));
-                    result.updated?.push(...(batchResult.updated || []));
+                    (_a = result.created) === null || _a === void 0 ? void 0 : _a.push(...(batchResult.created || []));
+                    (_b = result.updated) === null || _b === void 0 ? void 0 : _b.push(...(batchResult.updated || []));
                     if (!continueOnError && batchResult.failed > 0) {
                         throw new common_1.BadRequestException(`Batch operation failed at batch starting at row ${i + 1}`);
                     }
@@ -90,6 +91,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
     async bulkUpdateBooks(updates, options = {}) {
         const { batchSize = this.DEFAULT_BATCH_SIZE, continueOnError = false, auditContext, } = options;
         return await this.transactionService.runInTransaction(async (transaction) => {
+            var _a;
             const result = {
                 totalProcessed: updates.length,
                 successful: 0,
@@ -130,7 +132,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
                                 }, transaction);
                             }
                             result.successful++;
-                            result.updated?.push(id);
+                            (_a = result.updated) === null || _a === void 0 ? void 0 : _a.push(id);
                         }
                         catch (error) {
                             const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -158,6 +160,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
     async bulkDeleteBooks(bookIds, options = {}) {
         const { batchSize = this.DEFAULT_BATCH_SIZE, continueOnError = false, auditContext, } = options;
         return await this.transactionService.runInTransaction(async (transaction) => {
+            var _a;
             const result = {
                 totalProcessed: bookIds.length,
                 successful: 0,
@@ -205,7 +208,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
                                 }, transaction);
                             }
                             result.successful++;
-                            result.deleted?.push(bookId);
+                            (_a = result.deleted) === null || _a === void 0 ? void 0 : _a.push(bookId);
                         }
                         catch (error) {
                             const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -314,6 +317,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
         return result;
     }
     async processBooksInBatch(books, startIndex, options, transaction) {
+        var _a, _b;
         const result = {
             totalProcessed: books.length,
             successful: 0,
@@ -370,11 +374,11 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
                     });
                     book = await this.bookModel.findByPk(existingBook.id, { transaction });
                     operation = 'updated';
-                    result.updated?.push(book.id);
+                    (_a = result.updated) === null || _a === void 0 ? void 0 : _a.push(book.id);
                 }
                 else if (!existingBook) {
                     book = await this.bookModel.create(createData, { transaction });
-                    result.created?.push(book.id);
+                    (_b = result.created) === null || _b === void 0 ? void 0 : _b.push(book.id);
                 }
                 else {
                     result.errors.push({
@@ -401,7 +405,7 @@ let BatchOperationsService = BatchOperationsService_1 = class BatchOperationsSer
                         userId: options.auditContext.userId,
                         tableName: 'books',
                         recordId: book.id,
-                        oldValues: existingBook?.toJSON(),
+                        oldValues: existingBook === null || existingBook === void 0 ? void 0 : existingBook.toJSON(),
                         newValues: book.toJSON(),
                         ipAddress: options.auditContext.ipAddress,
                         userAgent: options.auditContext.userAgent,

@@ -23,7 +23,7 @@ let AuditInterceptor = class AuditInterceptor {
         const response = context.switchToHttp().getResponse();
         const { method: httpMethod, url: endpoint, ip: ipAddress, headers, user, body, params, } = request;
         const userAgent = headers['user-agent'];
-        const userId = user?.id;
+        const userId = user === null || user === void 0 ? void 0 : user.id;
         if (!this.shouldAudit(httpMethod, endpoint)) {
             return next.handle();
         }
@@ -130,11 +130,11 @@ let AuditInterceptor = class AuditInterceptor {
             case 'PUT':
             case 'PATCH':
                 action = audit_service_1.AuditAction.UPDATE;
-                recordId = params?.id || segments[1];
+                recordId = (params === null || params === void 0 ? void 0 : params.id) || segments[1];
                 break;
             case 'DELETE':
                 action = audit_service_1.AuditAction.DELETE;
-                recordId = params?.id || segments[1];
+                recordId = (params === null || params === void 0 ? void 0 : params.id) || segments[1];
                 break;
         }
         return { action, tableName, recordId };
